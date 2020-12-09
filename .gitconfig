@@ -1,0 +1,182 @@
+[credential]
+	helper = 
+	helper = manager-core
+[credential "https://dev.azure.com"]
+	useHttpPath = true
+[user]
+	name = Stepheh Yeadon
+	email = stephen.yeadon@equiniti.com
+[merge]
+	guitool = bc
+	tool = vsdiffmerge
+[diff]
+	guitool = bc
+	tool = vsdiffmerge
+[core]
+	editor = 'C:/Program Files/Notepad++/notepad++.exe' -multiInst -notabbar -nosession -noPlugin
+	pager = 
+	hookspath = .githooks
+[pull]
+	rebase = false
+[fetch]
+	prune = false
+[rebase]
+	autoStash = false
+[difftool "sourcetree"]
+	cmd = 'C:/Program Files/Beyond Compare 4/BComp.exe' \"$LOCAL\" \"$REMOTE\"
+[mergetool "sourcetree"]
+	cmd = 'C:/Program Files/Beyond Compare 4/BComp.exe' \"$LOCAL\" \"$REMOTE\" \"$BASE\" -o \"$MERGED\"
+	trustExitCode = true
+[difftool "bc"]
+	cmd = "\"c:/program files/beyond compare 4/bcomp.exe\" \"$LOCAL\" \"$REMOTE\""
+	path = c:/Program Files/Beyond Compare 4/bcomp.exe
+	prompt = false
+	trustExitCode = true
+[mergetool "bc"]
+	cmd = "\"c:/program files/beyond compare 4/bcomp.exe\" \"$LOCAL\" \"$REMOTE\" \"$BASE\" \"$MERGED\""
+	path = c:/Program Files/Beyond Compare 4/bcomp.exe
+[difftool]
+	prompt = true
+[difftool "vsdiffmerge"]
+	cmd = \"C:\\VS2019\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer\\vsdiffmerge.exe\" \"$LOCAL\" \"$REMOTE\" //t
+	keepBackup = false
+[mergetool]
+	prompt = true
+[mergetool "vsdiffmerge"]
+	cmd = \"C:\\VS2019\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer\\vsdiffmerge.exe\" \"$REMOTE\" \"$LOCAL\" \"$BASE\" \"$MERGED\" //m
+	keepBackup = false
+	trustExitCode = true
+[alias]
+	# list aliases
+	la = "!git config -l | grep alias | cut -c 7-"
+	#alias = ! git config --get-regexp ^alias\\. | sed -e s/^alias\\.// -e s/\\ /\\ =\\ /
+	
+	st = status -s
+	
+	# checking out
+	co = checkout
+	cob = checkout -b
+	coo = !git fetch && git checkout
+	dev = !git checkout develop && git pull origin develop
+	master = !git checkout master && git pull origin 
+	
+	# branches
+	br = branch
+	brd = branch -d
+	brD = branch -D
+	merged = branch --merged
+	
+	# adding 
+	aa = add -A .
+	cm = commit -m
+	aacm = !git add -A . && git commit -m
+	amend = commit --amend -m
+		
+	# pushing
+	po = push origin
+	pu = !git push origin `git branch --show-current`
+	pod = push origin develop
+	pom = push origin master
+	poh = push origin HEAD
+	pogm = !git push origin gh-pages && git checkout master && git pull origin master && git rebase gh-pages && git push origin master && git checkout gh-pages
+	pomg = !git push origin master && git checkout gh-pages && git pull origin gh-pages && git rebase master && git push origin gh-pages && git checkout master
+	
+	# pulling
+	plo = pull origin
+	plod = pull origin develop
+	plos = pull origin staging
+	plom = pull origin master
+	ploh = pull origin HEAD
+	
+	# stashing
+	sl = stash list
+    sa = stash apply
+    ss = stash save
+
+    # search for file names containg ?
+	f = "!git ls-files | grep -i"
+	# search for files containing text like ? in your current folder
+	gr = grep -Ii
+	# search for files containing text like ? in from the ROOT folder down
+	gra = "!f() { A=$(pwd) && TOPLEVEL=$(git rev-parse --show-toplevel) && cd $TOPLEVEL && git grep --full-name -In $1 | xargs -I{} echo $TOPLEVEL/{} && cd $A; }; f"
+	
+	# better diff
+	bc = "!f() { git difftool --tool=bc $@; }; f"
+	
+	cp = cherry-pick
+	
+	unstage = reset --soft HEAD^
+	fuckit = "!f() { git reset --hard; git clean -xfd; git reset --hard; }; f "
+	
+	### All about log line ##################################################################
+	log-line  = "!f() { git log $@ --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit; echo '\n'; }; f"
+	log-line-top = "!f() { count=${1-20}}; git log-line -n $count; }; f"
+	ll = log-line
+	llt = log-line-top
+	
+	
+	### All about log graph #################################################################
+	log-graph = "!f() { git log $@ --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit; echo '\n'; }; f"
+	log-graph-top = "!f() { count=${1-20}}; git log-graph -n $count; }; f"
+	lgt = log-graph-top
+		
+	
+	### Working with branches ###############################################################
+	# Get the current branch name (not so useful in itself, but used in other aliases)
+	branch-name = "!git rev-parse --abbrev-ref HEAD"
+	# Push the current branch to the remote "origin", and set it to track the upstream branch
+	publish = "!git push -u origin $(git branch-name)"
+	# Delete the remote version of the current branch
+	unpublish = "!git push origin :$(git branch-name)"
+	# Delete a branch and recreate it from master — useful if you have, say, a development branch 
+	# and a master branch and they could conceivably go out of sync
+	recreate = "!f() { [[ -n $@ ]] && git checkout \"$@\" && git unpublish && git checkout master && git branch -D \"$@\" && git checkout -b \"$@\" && git publish; }; f"
+
+	# Fire up your difftool (e.g. Kaleidescope) with all the changes that are on the current branch.
+	code-review = difftool origin/master...
+
+	# Given a merge commit, find the span of commits that exist(ed) on that branch. 
+	# Again, not so useful in itself, but used by other aliases.
+	merge-span = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
+
+	# Find the commits that were introduced by a merge
+	merge-log = "!git log `git merge-span .. $1`"
+	# Show the changes that were introduced by a merge
+	merge-diff = "!git diff `git merge-span ... $1`"
+	# As above, but in your difftool
+	merge-difftool = "!git difftool `git merge-span ... $1`"
+
+	# Interactively rebase all the commits on the current branch
+	rebase-branch = "!git rebase -i `git merge-base master HEAD`"
+
+
+	### Working with files ##################################################################
+	# Unstage any files that have been added to the staging area
+	unstage = reset HEAD
+	# Show changes that have been staged
+	diffc = diff --cached
+
+	# Mark a file as "assume unchanged", which means that Git will treat it as though there 
+	# are no changes to it even if there are. Useful for temporary changes to tracked files
+	assume = update-index --assume-unchanged
+	# Reverse the above
+	unassume = update-index --no-assume-unchanged
+	# Show the files that are currently assume-unchanged
+	assumed = "!git ls-files -v | grep ^h | cut -c 3-"
+
+	# Checkout our version of a file and add it
+	ours = "!f() { git checkout --ours $@ && git add $@; }; f"
+	# Checkout their version of a file and add it
+	theirs = "!f() { git checkout --theirs $@ && git add $@; }; f"
+
+	# Delete any branches that have been merged into master
+	# See also: https://gist.github.com/robmiller/5133264
+	delete-merged-branches = "!git co master && git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+	
+	# delete untracked branches	
+	delete-untracked-branches ="!f() { git fetch -p && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D }; f"
+	
+	### helpfull ############################################################################
+	# https://www.durdn.com/blog/2012/11/22/must-have-git-aliases-advanced-examples/
+	# https://gist.github.com/johnpolacek/69604a1f6861129ef088
+	# https://gist.github.com/robmiller/6018582/
