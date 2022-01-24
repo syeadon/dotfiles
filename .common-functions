@@ -1,0 +1,30 @@
+#!/bin/bash
+
+function SayHello() {
+  echo "Hello $@"
+}
+
+fork() {
+  if [ "$#" -ne 1 ] || [ "$1" -eq '.' ]; then
+    path=$(pwd -W)
+  else
+    #to do fix linux path issues
+    linuxPath=$(readlink -f $1)
+    path=$1
+  fi
+
+  /C/Users/syeadon/AppData/Local/Fork/Fork.exe "$path"
+}
+
+npp() {
+    /C/Program\ Files/Notepad++/notepad++.exe -multiInst -notabbar -nosession -noPlugin $* &
+}
+
+function HelloFrom() {
+  echo "Hello '$@' from git"
+}
+
+function ar(){
+    pattern="$@"
+    AgentRansack.exe -dw -c "$pattern" -r
+}

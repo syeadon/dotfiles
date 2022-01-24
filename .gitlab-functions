@@ -1,0 +1,96 @@
+#!/bin/bash
+
+show-pipeline() {
+  original_working_dir=$(pwd)
+
+  if [ "$#" -ne 1 ]; then
+    echo "Opening gitlab pipeline for current working directory"
+  else
+    path="$1"
+    echo "Opening gitlab pipeline for the supplied directory: $path"
+    cd $path
+  fi
+
+  baseurl=$(git remote show origin | grep -oP "(?<=Fetch URL:\s).*(?=\.git)")
+
+  url="${baseurl}/pipelines"
+
+  echo "$url"
+  start $url
+
+  cd $original_working_dir
+}
+
+show-merge-requests() {
+  original_working_dir=$(pwd)
+
+  if [ "$#" -ne 1 ]; then
+    echo "Opening gitlab merge requests for current working directory"
+  else
+    path="$1"
+    echo "Opening gitlab merge requests for the supplied directory: $path"
+    cd $path
+  fi
+
+  baseurl=$(git remote show origin | grep -oP "(?<=Fetch URL:\s).*(?=\.git)")
+
+  url="${baseurl}/-/merge_requests"
+
+  echo "$url"
+  start $url
+
+  cd $original_working_dir
+}
+
+new-merge-request() {
+
+  original_working_dir=$(pwd)
+
+  if [ "$#" -ne 1 ]; then
+    echo "Using current working directory"
+  else
+    path="$1"
+    echo "moving to the supplied directory: '$path'"
+    cd $path
+  fi
+
+  baseurl=$(git remote show origin | grep -oP "(?<=Fetch URL:\s).*(?=\.git)")
+
+  currentBranch=$(git branch --show-current | sed 's/\//%2F/g;')
+
+  url="${baseurl}/-/merge_requests/new?merge_request%5Bsource_branch%5D=${currentBranch}"
+
+  echo "$url"
+  start $url
+
+  cd $original_working_dir
+}
+
+mr(){
+  verbs=("list" "show" "new")
+  if [[ "$1" == "list" ]]; then
+    show-merge-requests
+  elif [[ "$1" == "show" ]]; then
+    show-merge-requests
+  elif [[ "$1" == "new" ]]; then
+    new-merge-request
+  elif [[ $# -eq 0 ]]; then
+    echo "No verb supplied"
+  else
+    echo "Unrecognised verb $1"
+  fi
+}
+
+pl(){
+  verbs=("list" "show")
+  commaDelimited=$(IFS=, ; echo "${verbs[*]}")
+  if [[ "$1" == "list" ]]; then
+    show-pipeline
+  elif [[ "$1" == "show" ]]; then
+    show-pipeline
+  elif [[ $# -eq 0 ]]; then
+    echo "No verb supplied. allowable verbs include [$commaDelimited]"
+  else    
+    echo "Unrecognised verb '$1' not in [$commaDelimited]"
+  fi
+}
