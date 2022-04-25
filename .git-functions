@@ -1,0 +1,100 @@
+#!/bin/bash
+
+#  	    https://www.npmjs.com/package/git-standup
+# -a 	Specify author to restrict search to e.g. -a "Kamran Ahmed" or -a "all"
+# -b 	Specify branch to restrict search to (unset: all branches, "$remote/$branch" to include fetches)
+# -w 	Specify week start and end days e.g. in UAE weekdays are from Sunday to Thursday so you can do -w SUN-THU
+# -m 	Specify the depth of recursive directory search e.g. -m 3 defaults to two
+# -F 	Force recursion up to speficied depth even when git repository found earlier
+# -d 	Specify the number of days back to include e.g. -d 30 to get for a month
+# -u 	Specify the number of days back till which standup should run e.g. -u 3
+# -L 	Toggle inclusion of symbolic links in recursive directory search
+# -D 	Specify the date format for "git log" (default: relative) possible values
+# -A 	Show the commits till after the given date
+# -B 	Show the commits till before the given date
+# -h 	Display the help screen
+# -g 	Show if commit is GPG signed (G) or not (N)
+# -f 	Fetch the latest commits beforehand
+# -s 	Silences the no activity message (useful when running in a directory having many repositories)
+# -c 	Show diff-stat for every matched commit
+# -r 	Generates the standup report file git-standup-report.txt in the current directory
+# -R 	Display the author date instead of the committer date
+function standup() {
+	wd=`pwd`
+	
+	d="/f/source/icenet-libraries"
+	echo "Checking $d..."
+	cd $d
+	git standup -s $@
+	echo " "
+	
+	d="/f/source/icenet-applications"
+	echo "Checking $d..."
+	cd $d
+	git standup -s $@
+	echo " "
+	
+	d="/f/source/icenet-tools"
+	echo "Checking $d..."
+	cd $d
+	git standup -s $@
+	echo " "
+	
+	d="/f/source/icenet-clients"
+	echo "Checking $d..."
+	cd $d
+	git standup -s $@
+	echo " "
+	
+	d="/f/source/icenet-clients"
+	echo "Checking $d..."
+	cd $d
+	git standup -s $@
+	echo " "
+	
+	d="/f/source/VAN/DEVELOP"
+	echo "Checking $d..."
+	cd $d
+	git standup -s $@
+	echo " "
+	
+	cd $wd
+}
+
+
+
+function JoinArray() { 
+  local IFS="$1"; 
+  shift; 
+  echo "$*"; 
+}
+
+function GetFeatureBranchName() { 
+  str=$1; 
+  arr=(${str//-/ }); 
+  if [ ${#arr[@]} -eq 1 ]; then 
+    echo feature/${arr[0]}; 
+  else
+    # get the tail elements of the array, slice off the first
+    tailElements=("${arr[@]:1}")	
+	result=$(JoinArray - ${tailElements[@]})
+    echo feature/${arr[0]^^}-${result}; 
+  fi
+}
+
+function GetModified(){
+	git ls-files -mo --exclude-standard
+}
+
+function GitCommitHistory() {
+	if [[ "$#" -eq 1 ]]; then
+		echo "Performing commit history regex serach '$1'"
+		git rev-list --all | xargs git grep -Ei $1
+	elif [[ "$#" -eq 2 ]]; then
+		echo "Performing commit history regex serach '$1' limited to the '$2' dir"
+		git rev-list --all  -- $2 | xargs git grep -Ei $1 -- $2
+	else
+		echo "Incorrect number of arguments passed"
+		exit -1
+	fi
+}

@@ -3,9 +3,12 @@
 	helper = manager-core
 [credential "https://dev.azure.com"]
 	useHttpPath = true
+[credential "http://github.com"]
+	provider = generic
+
 [user]
 	name = Stepheh Yeadon
-	email = stephen.yeadon@equiniti.com
+	email = stephen.yeadon@gmail.com
 [merge]
 	guitool = bc
 	tool = vsdiffmerge
@@ -49,13 +52,20 @@
 [alias]
 	# list aliases
 	la = "!git config -l | grep alias | cut -c 7-"
-	#alias = ! git config --get-regexp ^alias\\. | sed -e s/^alias\\.// -e s/\\ /\\ =\\ /
 	
+	# git status
 	st = status -s
+	modified = !bash -c '(source ~/.git-functions && GetModified "$1")' -
 	
 	# checking out
 	co = checkout
+	
+	# checkout feature branch (inserts feature/ and capitalizes the ice in ice-1234)
+	cof = "!f() { fbn=`git gfbn "$1"`; git co ${fbn}; }; f"
 	cob = checkout -b
+	
+	# checkout and create feature branch (inserts feature/ and capitalizes the ice in ice-1234)
+	cobf = "!f() { fbn=`git gfbn "$1"`; git cob ${fbn}; }; f"
 	coo = !git fetch && git checkout
 	dev = !git checkout develop && git pull origin develop
 	master = !git checkout master && git pull origin 
@@ -90,84 +100,57 @@
 	
 	# stashing
 	sl = stash list
-    sa = stash apply
-    ss = stash save
+	sa = stash apply
+	ss = stash save
 
-    # search for file names containg ?
-	f = "!git ls-files | grep -i"
-	# search for files containing text like ? in your current folder
-	gr = grep -Ii
-	# search for files containing text like ? in from the ROOT folder down
-	gra = "!f() { A=$(pwd) && TOPLEVEL=$(git rev-parse --show-toplevel) && cd $TOPLEVEL && git grep --full-name -In $1 | xargs -I{} echo $TOPLEVEL/{} && cd $A; }; f"
-	
-	# better diff
-	bc = "!f() { git difftool --tool=bc $@; }; f"
-	
+	# cherry picking
 	cp = cherry-pick
 	
+	# Interactively rebase all the commits on the current branch
+	rebase-branch = "!git rebase -i `git merge-base master HEAD`"
+	
+	# unstaging your index
 	unstage = reset --soft HEAD^
+	
+	
+	
+	### Searching ###########################################################################
+    # search for file names containg ?
+	f = "!git ls-files | grep -i"
+	
+	# search for files containing text like ? in your current folder
+	gr = grep -Ii
+	
+	# search for files containing text like ? in from the ROOT folder down
+	gra = "!f() { A=$(pwd) && TOPLEVEL=$(git rev-parse --show-toplevel) && cd $TOPLEVEL && git grep --full-name -In $1 | xargs -I{} echo $TOPLEVEL/{} && cd $A; }; f"
+
+	# Search for text inside a historic commit
+	ch = !bash -c '(source ~/.git-functions && GitCommitHistory "$1")' -
+		
+	
+	### When its all gone pete tong #########################################################
 	fuckit = "!f() { git reset --hard; git clean -xfd; git reset --hard; }; f "
 	
-	### All about log line ##################################################################
-	log-line  = "!f() { git log $@ --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit; echo '\n'; }; f"
-	log-line-top = "!f() { count=${1-20}}; git log-line -n $count; }; f"
-	ll = log-line
-	llt = log-line-top
-	
-	
-	### All about log graph #################################################################
-	log-graph = "!f() { git log $@ --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit; echo '\n'; }; f"
-	log-graph-top = "!f() { count=${1-20}}; git log-graph -n $count; }; f"
-	lgt = log-graph-top
 		
 	
 	### Working with branches ###############################################################
 	# Get the current branch name (not so useful in itself, but used in other aliases)
 	branch-name = "!git rev-parse --abbrev-ref HEAD"
+	
+	# Get a correctly formated feature/branch name from the scring you pass it
+	#gfbn = "!f() { str=$1; arr=(${str//-/ }); if [ \"${#arr[@]}\" -eq "1" ]; then echo feature/${arr[0]^^}; else echo feature/${arr[0]^^}-${arr[1]}; fi; }; f"
+	# i do not know why the trailing dash is necessary, but it ABSOLUTLY is
+	gfbn = !bash -c '(source ~/.git-functions && GetFeatureBranchName "$1")' -
+	
 	# Push the current branch to the remote "origin", and set it to track the upstream branch
 	publish = "!git push -u origin $(git branch-name)"
+	
 	# Delete the remote version of the current branch
 	unpublish = "!git push origin :$(git branch-name)"
+	
 	# Delete a branch and recreate it from master — useful if you have, say, a development branch 
 	# and a master branch and they could conceivably go out of sync
 	recreate = "!f() { [[ -n $@ ]] && git checkout \"$@\" && git unpublish && git checkout master && git branch -D \"$@\" && git checkout -b \"$@\" && git publish; }; f"
-
-	# Fire up your difftool (e.g. Kaleidescope) with all the changes that are on the current branch.
-	code-review = difftool origin/master...
-
-	# Given a merge commit, find the span of commits that exist(ed) on that branch. 
-	# Again, not so useful in itself, but used by other aliases.
-	merge-span = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
-
-	# Find the commits that were introduced by a merge
-	merge-log = "!git log `git merge-span .. $1`"
-	# Show the changes that were introduced by a merge
-	merge-diff = "!git diff `git merge-span ... $1`"
-	# As above, but in your difftool
-	merge-difftool = "!git difftool `git merge-span ... $1`"
-
-	# Interactively rebase all the commits on the current branch
-	rebase-branch = "!git rebase -i `git merge-base master HEAD`"
-
-
-	### Working with files ##################################################################
-	# Unstage any files that have been added to the staging area
-	unstage = reset HEAD
-	# Show changes that have been staged
-	diffc = diff --cached
-
-	# Mark a file as "assume unchanged", which means that Git will treat it as though there 
-	# are no changes to it even if there are. Useful for temporary changes to tracked files
-	assume = update-index --assume-unchanged
-	# Reverse the above
-	unassume = update-index --no-assume-unchanged
-	# Show the files that are currently assume-unchanged
-	assumed = "!git ls-files -v | grep ^h | cut -c 3-"
-
-	# Checkout our version of a file and add it
-	ours = "!f() { git checkout --ours $@ && git add $@; }; f"
-	# Checkout their version of a file and add it
-	theirs = "!f() { git checkout --theirs $@ && git add $@; }; f"
 
 	# Delete any branches that have been merged into master
 	# See also: https://gist.github.com/robmiller/5133264
@@ -176,7 +159,121 @@
 	# delete untracked branches	
 	delete-untracked-branches ="!f() { git fetch -p && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D }; f"
 	
+	
+	
+	### Logging #############################################################################
+	log-line  = "!f() { git log $@ --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit; echo '\n'; }; f"
+	log-line-top = "!f() { count=${1-20}}; git log-line -n $count; }; f"
+	ll = log-line
+	llt = log-line-top
+	
+	log-graph = "!f() { git log $@ --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit; echo '\n'; }; f"
+	log-graph-top = "!f() { count=${1-20}}; git log-graph -n $count; }; f"
+	lgt = log-graph-top
+	
+	# additional logging need to choose teh best
+	graph = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset)\t%C(bold green)%d%C(reset) %C(white)%s%C(reset) - %C(bold white)%an%C(reset) %C(bold yellow)(%ar)%C(reset)' --all
+	hist = log --pretty=format:\"%C(bold blue)%h%C(reset) %C(bold yellow)%ad%C(reset) | %s%C(bold green)%d%C(reset) %C(bold white)[%an]%C(reset)\" --graph --date=short
+	gr = !git graph
+	hi = !git hist	
+
+	# Given a merge commit, find the span of commits that exist(ed) on that branch. 
+	# Again, not so useful in itself, but used by other aliases.
+	merge-span = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
+
+	# Find the commits that were introduced by a merge
+	merge-log = "!git log `git merge-span .. $1`"
+	
+	
+	
+	### Diffing Code ########################################################################
+	
+	# better diff
+	bc = "!f() { git difftool --tool=bc $@; }; f"
+	
+	# Fire up your difftool with all the changes that are on the current feature branch.
+	code-review = git bc origin/DEVELOP...
+	
+	# Show the changes that were introduced by a merge
+	merge-diff = "!git diff `git merge-span ... $1`"
+	
+	# As above, but in your difftool
+	merge-difftool = "!git bc `git merge-span ... $1`"
+
+	# Show changes that have been staged
+	diffc = diff --cached
+	
+	
+
+	### Working with files ##################################################################
+	
+	# Mark a file as "assume unchanged", which means that Git will treat it as though there 
+	# are no changes to it even if there are. Useful for temporary changes to tracked files
+	assume = update-index --assume-unchanged
+	
+	# Reverse the above
+	unassume = update-index --no-assume-unchanged
+	
+	# Show the files that are currently assume-unchanged
+	assumed = "!git ls-files -v | grep ^h | cut -c 3-"
+
+	# Checkout our version of a file and add it
+	ours = "!f() { git checkout --ours $@ && git add $@; }; f"
+	
+	# Checkout their version of a file and add it
+	theirs = "!f() { git checkout --theirs $@ && git add $@; }; f"
+
+	
+	
+	### Gitlab merge requests ###############################################################
+	
+	# checkout a merge request e.g. g mr origin 5
+	mr = !sh -c 'git fetch $1 merge-requests/$2/head:mr-$1-$2 && git checkout mr-$1-$2' -
+	
+	
+	
+	### Repository actions ##################################################################
+	repos = "!f() { find . -maxdepth 10 -name .git -type d -prune; }; f"
+	#reset-to-dev = "!f() { repos | while read d; do  }; f"
+	
+	
 	### helpfull ############################################################################
 	# https://www.durdn.com/blog/2012/11/22/must-have-git-aliases-advanced-examples/
 	# https://gist.github.com/johnpolacek/69604a1f6861129ef088
 	# https://gist.github.com/robmiller/6018582/
+	# https://docs.gitlab.com/ee/user/project/merge_requests/reviews/index.html
+	# https://gitlab.com/glensc/git-mr
+	
+#[pager]
+#    diff = delta -w 250
+#    log = delta
+#    reflog = delta
+#    show = delta
+##
+##[delta]
+##    plus-style = "syntax #012800"
+##    minus-style = "syntax #340001"
+##    syntax-theme = Monokai Extended
+##    navigate = true
+##	side-by-side = true
+##
+##[interactive]
+#    diffFilter = delta --color-only	
+#	
+#[delta]
+#    features = side-by-side line-numbers decorations
+#    syntax-theme = Dracula
+#    plus-style = syntax "#003800"
+#    minus-style = syntax "#3f0001"
+#
+#[delta "decorations"]
+#    commit-decoration-style = bold yellow box ul
+#    file-style = bold yellow ul
+#    file-decoration-style = none
+#    hunk-header-decoration-style = cyan box ul
+#
+#[delta "line-numbers"]
+#    line-numbers-left-style = cyan
+#    line-numbers-right-style = cyan
+#    line-numbers-minus-style = 124
+#    line-numbers-plus-style = 28	
