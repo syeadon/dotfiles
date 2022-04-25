@@ -2,6 +2,7 @@ source ~/.common-functions
 source ~/.git-functions
 #source ~/.gitlab-functions
 
+
 alias ll='ls -lah --color=always'
 alias gh='history|grep'
 alias matrix='/F/Source/my-projects/Scripticus/shell/matrix.sh'
@@ -27,6 +28,8 @@ __git_complete g __git_main
 alias brc='bat ~/.bashrc'
 alias grc='bat ~/.gitconfig'
 
+alias brc='bat ~/.bashrc'
+alias grc='bat ~/.gitconfig'
 
 # add auto completion back into git branches
 # see: https://levelup.gitconnected.com/upgrade-your-command-line-for-software-development-with-git-autocomplete-1fb946c14750

@@ -43,6 +43,7 @@ show-merge-requests() {
 }
 
 new-merge-request() {
+
   original_working_dir=$(pwd)
 
   if [ "$#" -ne 1 ]; then
