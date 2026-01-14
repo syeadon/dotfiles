@@ -8,12 +8,25 @@
   "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screenrecording-indicator"],
   "modules-right": [
     "group/tray-expander",
+    "custom/keylight",
     "bluetooth",
     "network",
     "pulseaudio",
     "cpu",
     "battery"
   ],
+  "custom/keylight": {
+    "exec": "~/.config/waybar/scripts/elgato_keylight.py",
+    "return-type": "json",
+    "interval": 5,
+    "on-click": "~/.config/waybar/scripts/elgato_keylight.py control",
+    "format": "{}",
+    "format-icons": {
+      "on": "󰛨",
+      "off": "󰹐",
+      "offline": "󰛨"
+    }
+  },
   "hyprland/workspaces": {
     "on-click": "activate",
     "format": "{icon}",
