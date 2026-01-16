@@ -1,0 +1,8 @@
+{
+  "apps": {
+    "elgato-keylight": {
+      "label": "Elgato Keylight",
+      "command": "~/.config/waybar/scripts/elgato_keylight.py control"
+    }
+  }
+}

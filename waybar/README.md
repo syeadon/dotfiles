@@ -89,7 +89,14 @@ Add the following to the styles file
 }
 ```
 
-Add this file to get an item in the menu
+To add this to walker create a new file ~/.local/share/applications/elgato-control.desktop 
 ```
-~/.local/share/applications/elgato-control.desktop to get the walker working
+[Desktop Entry]
+Type=Application
+Name=Elgato Keylight Control
+Exec=/home/dnx/.config/waybar/scripts/elgato_keylight.py control
+Categories=Utility;
 ```
+```
+
+.
